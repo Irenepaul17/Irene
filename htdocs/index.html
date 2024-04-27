@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Loading indicator styles */
+        #loading-indicator {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Content -->
+    <div class="container">
+        <h1>News Viewer</h1>
+
+        <!-- Country Selector -->
+        <label for="country-selector">Select Country:</label>
+        <select id="country-selector" onchange="fetchNewsTopics()">
+            <option value="NZ">New Zealand</option>
+            <option value="AU">Australia</option>
+            <option value="GB">United Kingdom</option>
+            <option value="US">United States</option>
+        </select>
+
+    
+        <!-- News Topics Section -->
+        <div id="news-topics">
+            <!-- News topics will be displayed here -->
+        </div>
+
+        <!-- News Headlines Section -->
+        <div id="news-headlines">
+            <!-- News headlines will be displayed here -->
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading-indicator">Loading...</div>
+    </div>
+
+        <!-- Buttons for adding/removing topics -->
+        <div id="topic-buttons">
+            <button onclick="addTopic('YourTopic')">Add Topic</button>
+            <button onclick="removeTopic('YourTopic')">Remove Topic</button>
+    </div>
+
+
+
+    <!-- JavaScript -->
+    <script>
+        // Function to show loading indicator
+        function showLoadingIndicator() {
+            document.getElementById('loading-indicator').style.display = 'block';
+        }
+
+        // Function to hide loading indicator
+        function hideLoadingIndicator() {
+            document.getElementById('loading-indicator').style.display = 'none';
+        }
+
+        // Function to fetch news topics from the server
+        function fetchNewsTopics() {
+            const topicsContainer = document.getElementById('news-topics');
+
+            topicsContainer.innerHTML = '';
+            fetch('databases.php') // Assuming your PHP file is accessible via localhost
+            .then(response => response.json())
+            .then(data => {
+                // Process the data and display news topics on the webpage
+                //const topicsContainer = document.getElementById('news-topics');
+                data.forEach(topic => {
+                    //alert(topic);
+                    const topicElement = document.createElement('div');
+                    topicElement.classList.add('topic');
+                    topicElement.textContent = topic;
+                    topicElement.addEventListener('click', () => fetchTopStories(topic));
+                    topicsContainer.appendChild(topicElement);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+        }
+        
+
+        // Function to add a new topic
+        function addTopic(topic) {
+            fetch('databases.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `topic=${topic}`,
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to add topic');
+                }
+                return response.text();
+            })
+            .then(data => {
+                console.log(data); // Log the response
+                // You can update the UI here if needed
+            })
+            .catch(error => console.error('Error:', error));
+        }   
+
+        // Function to remove a topic
+        function removeTopic(topic) {
+            fetch(`databases.php?topic=${topic}`, {
+                method: 'DELETE',
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to remove topic');
+                }
+                return response.text();
+            })
+            .then(data => {
+                console.log(data); // Log the response
+                // You can update the UI here if needed
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+
+        // Add an onload event listener to trigger fetchNewsTopics when the page finishes loading
+        //window.onload = fetchNewsTopics;
+
+        // Function to fetch news headlines based on selected topic
+        function fetchTopStories() {
+            const country = 'NZ'; // Default country code
+            const url = `https://api.thenewsapi.com/v1/news/top?api_token=f53v91VentGBDsxJPznk9HZxbD7rd9yaSDtCQjy1&locale=us&limit=3`;
+            showLoadingIndicator(); // Show loading indicator
+            fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                // Process the data and display news headlines on the webpage
+                const storiesContainer = document.getElementById('news-headlines');
+                storiesContainer.innerHTML = ''; // Clear previous stories
+                if (!data.data || data.data.length === 0) {
+                    const noStoriesMessage = document.createElement('p');
+                    noStoriesMessage.textContent = 'No top stories found for this topic.';
+                    storiesContainer.appendChild(noStoriesMessage);
+                } else {
+                    data.data.slice(0, 3).forEach(story => {
+                        const storyElement = document.createElement('div');
+                        storyElement.classList.add('story-item');
+                        storyElement.innerHTML = `<p class="story-title">${story.title}</p>
+                                                     <a class="story-url" href="${story.url}" target="_blank">${story.url}</a>`;
+                        storiesContainer.appendChild(storyElement);
+                    });
+                }
+                hideLoadingIndicator(); // Hide loading indicator
+                if (!data.data || data.data.length === 0) {
+                    // Inform the user if no headlines are found
+                    alert('No top stories found for this topic.');
+                } else {
+                    // Inform the user if headlines are displayed
+                    alert('Top stories are displayed.');
+                }
+            })
+        
+
+            .catch(error => {
+                console.error('Error:', error);
+                hideLoadingIndicator(); // Hide loading indicator in case of error
+            });
+        }
+
+        // Call the fetchNewsTopics function when the page loads
+        document.addEventListener('DOMContentLoaded', fetchNewsTopics);
+    </script>
+</body>
+</html>

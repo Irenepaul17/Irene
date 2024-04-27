@@ -1,0 +1,38 @@
+/* Style for the main container */
+.container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+/* Style for the button */
+.container button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Style for the data container */
+.data-container {
+    margin-top: 20px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+}
+
+/* Style for the table */
+.data-container table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-container th, .data-container td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.data-container th {
+    background-color: #f2f2f2;
+}

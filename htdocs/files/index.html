@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asynchronous News Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Loading indicator styles */
+        #loading-indicator {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Content -->
+    <div class="container">
+        <h1>Asynchronous News Viewer</h1>
+
+        <!-- News Topics Section -->
+        <div id="news-topics">
+            <!-- News topics will be displayed here -->
+        </div>
+
+        <!-- News Headlines Section -->
+        <div id="news-headlines">
+            <!-- News headlines will be displayed here -->
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading-indicator">Loading...</div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Function to show loading indicator
+        function showLoadingIndicator() {
+            document.getElementById('loading-indicator').style.display = 'block';
+        }
+
+        // Function to hide loading indicator
+        function hideLoadingIndicator() {
+            document.getElementById('loading-indicator').style.display = 'none';
+        }
+
+        // Function to fetch news topics from the server
+        function fetchNewsTopics() {
+            fetch('http://localhost/databases.php') // Assuming your PHP file is accessible via localhost
+            .then(response => response.json())
+            .then(data => {
+                // Process the data and display news topics on the webpage
+                const topicsContainer = document.getElementById('news-topics');
+                data.forEach(topic => {
+                    const topicElement = document.createElement('div');
+                    topicElement.classList.add('topic');
+                    topicElement.textContent = topic.category;
+                    topicElement.addEventListener('click', () => fetchNewsHeadlines(topic.category));
+                    topicsContainer.appendChild(topicElement);
+                });
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        // Function to fetch news headlines based on selected topic
+        function fetchNewsHeadlines(category) {
+            const country = 'NZ'; // Default country code
+            const url = `https://newsapi.org/v2/top-headlines?country=${country}&category=${category}&apiKey=f53v91VentGBDsxJPznk9HZxbD7rd9yaSDtCQjy1Y`;
+            showLoadingIndicator(); // Show loading indicator
+            fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                // Process the data and display news headlines on the webpage
+                const headlinesContainer = document.getElementById('news-headlines');
+                headlinesContainer.innerHTML = ''; // Clear previous headlines
+                if (data.articles.length === 0) {
+                    const noHeadlinesMessage = document.createElement('p');
+                    noHeadlinesMessage.textContent = 'No headlines found for this topic.';
+                    headlinesContainer.appendChild(noHeadlinesMessage);
+                } else {
+                    data.articles.slice(0, 3).forEach(article => {
+                        const headlineElement = document.createElement('div');
+                        headlineElement.classList.add('news-item');
+                        headlineElement.innerHTML = `<p class="news-title">${article.title}</p>
+                                                     <a class="news-url" href="${article.url}" target="_blank">${article.url}</a>`;
+                        headlinesContainer.appendChild(headlineElement);
+                    });
+                }
+                hideLoadingIndicator(); // Hide loading indicator
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                hideLoadingIndicator(); // Hide loading indicator in case of error
+            });
+        }
+
+        // Call the fetchNewsTopics function when the page loads
+        document.addEventListener('DOMContentLoaded', fetchNewsTopics);
+    </script>
+</body>
+</html>
